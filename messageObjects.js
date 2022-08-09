@@ -84,34 +84,41 @@ class Embed {
     }
     if (!this.fields) this.fields = [];
     this.fields.push(field)
+    return this
   }
 
   setColor(color) {
     this.color = parseColor(color)
+    return this
   }
 
   setAuthor(authorObject) {
     this.author = parseFromAllowed(authorObject, accepted.author)
+    return this
   }
 
   addFields(...args) {
     args.forEach((value) => {
       this.addField(value)
     })
+    return this
   }
 
   setTimestamp(ts) {
     if (ts && ts instanceof Date) ts = ts.getTime();
     if (!ts) ts = Date.now()
     this.timestamp = ts;
+    return this
   }
 
   setTitle(str) {
     this.title = parseStr(str)
+    return this
   }
 
   setFooter(footerObject) {
     this.footer = parseFromAllowed(authorObject, accepted.footer)
+    return this
   }
 }
 
@@ -136,14 +143,17 @@ class Button {
 
   setEmoji(emoji) {
     this.emoji = parseStr(emoji, true)
+    return this
   }
 
   setCustomId(id) {
     this.custom_id = parseStr(id, true)
+    return this
   }
 
   setLabel(str) {
     this.label = parseStr(str)
+    return this
   }
 
   setDisabled(bool) {
@@ -152,6 +162,7 @@ class Button {
     } else {
       return Error('Argument must be a boolean!')
     }
+    return this
   }
 
   setType(buttonType) {
@@ -161,10 +172,12 @@ class Button {
     } else if (typeof (buttonType) === 'string') {
       this.type = buttonTypes[buttonType.toLowerCase()]
     }
+    return this
   }
 
   setUrl(str) {
     this.url = parseStr(str)
+    return this
   }
 }
 
@@ -189,16 +202,19 @@ class ActionRow {
 
   addComponent(obj) {
     if (!this.components) this.components = []
+    return this
   }
 
   addComponents(arr) {
     arr.forEach((ob) => {
       this.addComponent(ob)
     })
+    return this
   }
 
   setComponents(arr) {
     this.components = arr
+    return this
   }
 }
 
