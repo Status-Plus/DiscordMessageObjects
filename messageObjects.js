@@ -123,7 +123,7 @@ class Embed {
 }
 
 class Button {
-  constructor() {
+  constructor(options) {
     let ob = {}
     if (options && typeof (options) === 'object') {
       const obj_ = {}
@@ -182,7 +182,7 @@ class Button {
 }
 
 class ActionRow {
-  constructor() {
+  constructor(options) {
     let ob = {}
     if (options && typeof (options) === 'object') {
       const obj_ = {}
