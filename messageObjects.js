@@ -6,7 +6,7 @@ const accepted = {
   author: ['name', 'iconURL', 'url'],
   footer: ['text', 'iconURL'],
   button: ['type', 'emoji', 'custom_id', 'disabled', 'style'],
-  selectMenu: ['label', 'value', 'description', 'emoji'],
+  selectMenu: ['label', 'value', 'description', 'emoji', 'options'],
 }
 
 const buttonTypes = {
