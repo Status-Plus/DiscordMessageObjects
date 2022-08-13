@@ -5,6 +5,8 @@ const colors = require('./colors.js')
 const accepted = {
   author: ['name', 'iconURL', 'url'],
   footer: ['text', 'iconURL'],
+  button: ['type', 'emoji', 'custom_id', 'disabled', 'style'],
+  selectMenu: ['label', 'value', 'description', 'emoji'],
 }
 
 const buttonTypes = {
@@ -56,6 +58,32 @@ function parseFromAllowed(object, accepted) {
   }
   return final
 }
+const emojiRegex = /\p{Emoji}/u
+const animatedEmojiRegex = /<a:[a-zA-Z0-1_]+:\d+>/gm
+const normalEmojiRegex = /<[a-zA-Z0-1_]+:\d+>/gm
+function createEmojiObject(str) {
+  const isEmoji = emojiRegex.test(str)
+  const isNormal = normalEmojiRegex.test(str)
+  const isAnimated = animatedEmojiRegex.test(str)
+  const parts = str.split(':')
+  if (isEmoji) {
+    return {
+      id: null,
+      name: str,
+    }
+  } if (isNormal) {
+    return {
+      id: parts[1],
+      name: parts[0],
+    }
+  } if (isAnimated) {
+    return {
+      id: parts[2],
+      name: parts[1],
+    }
+  }
+  return null
+}
 class Embed {
   constructor(options) {
     let ob = {}
@@ -104,10 +132,18 @@ class Embed {
     return this
   }
 
-  setTimestamp(ts) {
-    if (ts && ts instanceof Date) ts = ts.getTime();
-    if (!ts) ts = Date.now()
-    this.timestamp = ts;
+  setFields(...args) {
+    this.fields = []
+    this.addFields(...args)
+  }
+
+  setTimestamp(timestamp) {
+    if (!timestamp) {
+      timestamp = new Date().toISOString()
+    } else if (timestamp instanceof (Date)) {
+      timestamp = timestamp.toISOString()
+    }
+    this.timestamp = timestamp
     return this
   }
 
@@ -117,8 +153,17 @@ class Embed {
   }
 
   setFooter(footerObject) {
-    this.footer = parseFromAllowed(authorObject, accepted.footer)
+    this.footer = parseFromAllowed(footerObject, accepted.footer)
     return this
+  }
+
+  setDescription(str) {
+    this.description = parseStr(str)
+    return this
+  }
+
+  done() {
+    return JSON.parse(JSON.stringify(this))
   }
 }
 
@@ -142,12 +187,15 @@ class Button {
   }
 
   setEmoji(emoji) {
-    this.emoji = parseStr(emoji, true)
+    const parsed = parseStr(emoji, true)
+    const emojiObject = createEmojiObject(parsed)
+    this.emoji = emojiObject
     return this
   }
 
   setCustomId(id) {
-    this.custom_id = parseStr(id, true)
+    const customId = parseStr(id, true)
+    this.custom_id = customId
     return this
   }
 
@@ -165,12 +213,13 @@ class Button {
     return this
   }
 
-  setType(buttonType) {
-    if (!buttonTypes[buttonType]) return Error('Invalid button type!')
-    if (typeof (buttonType) === 'number') {
-      this.type = buttonTypes[buttonType]
-    } else if (typeof (buttonType) === 'string') {
-      this.type = buttonTypes[buttonType.toLowerCase()]
+  setStyle(buttonType) {
+    if (typeof (buttonType) === 'number' && buttonTypes[buttonType]) {
+      this.style = buttonTypes[buttonType]
+    } else if (typeof (buttonType) === 'string' && buttonTypes[buttonType.toLowerCase()]) {
+      this.style = buttonTypes[buttonType.toLowerCase()]
+    } else {
+      return Error('Invalid button style!')
     }
     return this
   }
@@ -178,6 +227,86 @@ class Button {
   setUrl(str) {
     this.url = parseStr(str)
     return this
+  }
+
+  done() {
+    return JSON.parse(JSON.stringify(this))
+  }
+}
+
+class SelectMenu {
+  constructor(options) {
+    let ob = {}
+    if (options && typeof (options) === 'object') {
+      const obj_ = {}
+      for (const index in options) {
+        const element = options[index]
+        obj_[index.toLowerCase()] = element
+      }
+      ob = obj_
+    } else if (typeof (options) !== 'object') {
+      Error(`Options argument must be NULL or Object! Type given: ${typeof (options)}`)
+    }
+    for (const i in ob) {
+      this[i] = ob[i]
+    }
+    this.type = 3
+  }
+
+  setCustomId(id) {
+    const customId = parseStr(id, true)
+    this.custom_id = customId
+    return this
+  }
+
+  addOption(obj) {
+    if (!this.options) this.options = []
+    const converted = {}
+    for (const index in obj) {
+      let item = obj[index]
+      if (item === 'emoji') item = createEmojiObject(item)
+      converted[item] = index
+    }
+    const newObj = parseFromAllowed(obj, accepted.selectMenu)
+    this.options.push(newObj)
+    console.log(this)
+    return this
+  }
+
+  addOptions(...args) {
+    args.forEach((ob) => {
+      this.addOption(ob)
+    })
+    return this
+  }
+
+  setPlaceholder(str) {
+    const placeHolder = parseStr(str, true)
+    this.placeholder = placeHolder
+    return this
+  }
+
+  setMaxValues(int) {
+    if (int > 25) return Error('You can only have 25 max selectable values!')
+    this.max_values = int
+  }
+
+  setMinValues(int) {
+    if (int > 25) return Error('You can only have 25 max selectable values!')
+    this.max_values = int
+  }
+
+  setDisabled(bool) {
+    if (typeof (bool) === 'boolean') {
+      this.disabled = bool
+    } else {
+      return Error('Argument must be a boolean!')
+    }
+    return this
+  }
+
+  done() {
+    return JSON.parse(JSON.stringify(this))
   }
 }
 
@@ -202,11 +331,13 @@ class ActionRow {
 
   addComponent(obj) {
     if (!this.components) this.components = []
+    const allowedItems = [].concat(accepted.button, accepted.selectMenu)
+    this.components.push(parseFromAllowed(obj, allowedItems))
     return this
   }
 
-  addComponents(arr) {
-    arr.forEach((ob) => {
+  addComponents(...args) {
+    args.forEach((ob) => {
       this.addComponent(ob)
     })
     return this
@@ -215,6 +346,10 @@ class ActionRow {
   setComponents(arr) {
     this.components = arr
     return this
+  }
+
+  done() {
+    return JSON.parse(JSON.stringify(this))
   }
 }
 
@@ -225,6 +360,9 @@ module.exports = { // Including every shitty name d.js has used before because y
   Button,
   MessageButton: Button,
   ButtonBuilder: Button,
+  SelectMenu,
+  MessageSelectMenu: SelectMenu,
+  SelectMenuBuilder: SelectMenu,
   ActionRow,
   MessageActionRow: ActionRow,
   ActionRowBuilder: ActionRow,
