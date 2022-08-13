@@ -269,7 +269,6 @@ class SelectMenu {
     }
     const newObj = parseFromAllowed(obj, accepted.selectMenu)
     this.options.push(newObj)
-    console.log(this)
     return this
   }
 
