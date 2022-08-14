@@ -35,10 +35,11 @@ function parseStr(s_, errOnFail) {
 }
 function parseColor(color) {
   if (typeof color === 'string') {
-    color = color.toLowerCase()
-    if (color === 'random') return Math.floor(Math.random() * (0xffffff + 1));
-    if (color === 'default') return 0;
-    color = colors[color] ?? parseInt(color.replace('#', ''), 16);
+    const lowered = color.toLowerCase()
+    const uppered = color.toUpperCase()
+    if (lowered === 'random') return Math.floor(Math.random() * (0xffffff + 1));
+    if (lowered === 'default') return 0;
+    color = colors[uppered] ?? parseInt(color.replace('#', ''), 16);
   } else if (Array.isArray(color)) {
     // eslint-disable-next-line no-bitwise
     color = (color[0] << 16) + (color[1] << 8) + color[2];
