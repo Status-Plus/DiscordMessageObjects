@@ -106,7 +106,7 @@ class Embed {
 
   addField(unparsedField) {
     const field = {}
-    const [n, v, i] = [toString(unparsedField.name), toString(unparsedField.value), Boolean(unparsedField.inline)]
+    const [n, v, i] = [String(unparsedField.name), String(unparsedField.value), Boolean(unparsedField.inline)]
     if (n && v) {
       field.name = n
       field.value = v
@@ -136,7 +136,8 @@ class Embed {
 
   setFields(...args) {
     this.data.fields = []
-    this.data.addFields(...args)
+    this.addFields(...args)
+    return this
   }
 
   setTimestamp(timestamp) {
