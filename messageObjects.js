@@ -5,7 +5,7 @@ const colors = require('./colors.js')
 const accepted = {
   author: ['name', 'iconURL', 'url'],
   footer: ['text', 'iconURL'],
-  button: ['type', 'emoji', 'custom_id', 'disabled', 'style'],
+  button: ['type', 'emoji', 'custom_id', 'disabled', 'style', 'url'],
   selectMenu: ['label', 'value', 'description', 'emoji', 'options'],
 }
 
@@ -87,6 +87,7 @@ function createEmojiObject(str) {
 }
 class Embed {
   constructor(options) {
+    this.data = {}
     let ob = {}
     if (options && typeof (options) === 'object') {
       const obj_ = {}
@@ -111,18 +112,18 @@ class Embed {
       field.value = v
       field.inline = i
     }
-    if (!this.fields) this.fields = [];
-    this.fields.push(field)
+    if (!this.data.fields) this.data.fields = [];
+    this.data.fields.push(field)
     return this
   }
 
   setColor(color) {
-    this.color = parseColor(color)
+    this.data.color = parseColor(color)
     return this
   }
 
   setAuthor(authorObject) {
-    this.author = parseFromAllowed(authorObject, accepted.author)
+    this.data.author = parseFromAllowed(authorObject, accepted.author)
     return this
   }
 
@@ -134,8 +135,8 @@ class Embed {
   }
 
   setFields(...args) {
-    this.fields = []
-    this.addFields(...args)
+    this.data.fields = []
+    this.data.addFields(...args)
   }
 
   setTimestamp(timestamp) {
@@ -144,32 +145,33 @@ class Embed {
     } else if (timestamp instanceof (Date)) {
       timestamp = timestamp.toISOString()
     }
-    this.timestamp = timestamp
+    this.data.timestamp = timestamp
     return this
   }
 
   setTitle(str) {
-    this.title = parseStr(str)
+    this.data.title = parseStr(str)
     return this
   }
 
   setFooter(footerObject) {
-    this.footer = parseFromAllowed(footerObject, accepted.footer)
+    this.data.footer = parseFromAllowed(footerObject, accepted.footer)
     return this
   }
 
   setDescription(str) {
-    this.description = parseStr(str)
+    this.data.description = parseStr(str)
     return this
   }
 
-  done() {
-    return JSON.parse(JSON.stringify(this))
+  toJSON() {
+    return { ...this.data }
   }
 }
 
 class Button {
   constructor(options) {
+    this.data = {}
     let ob = {}
     if (options && typeof (options) === 'object') {
       const obj_ = {}
@@ -184,30 +186,30 @@ class Button {
     for (const i in ob) {
       this[i] = ob[i]
     }
-    this.type = 2
+    this.data.type = 2
   }
 
   setEmoji(emoji) {
     const parsed = parseStr(emoji, true)
     const emojiObject = createEmojiObject(parsed)
-    this.emoji = emojiObject
+    this.data.emoji = emojiObject
     return this
   }
 
   setCustomId(id) {
     const customId = parseStr(id, true)
-    this.custom_id = customId
+    this.data.custom_id = customId
     return this
   }
 
   setLabel(str) {
-    this.label = parseStr(str)
+    this.data.label = parseStr(str)
     return this
   }
 
   setDisabled(bool) {
     if (typeof (bool) === 'boolean') {
-      this.disabled = bool
+      this.data.disabled = bool
     } else {
       return Error('Argument must be a boolean!')
     }
@@ -216,9 +218,9 @@ class Button {
 
   setStyle(buttonType) {
     if (typeof (buttonType) === 'number' && buttonTypes[buttonType]) {
-      this.style = buttonTypes[buttonType]
+      this.data.style = buttonTypes[buttonType]
     } else if (typeof (buttonType) === 'string' && buttonTypes[buttonType.toLowerCase()]) {
-      this.style = buttonTypes[buttonType.toLowerCase()]
+      this.data.style = buttonTypes[buttonType.toLowerCase()]
     } else {
       return Error('Invalid button style!')
     }
@@ -226,17 +228,20 @@ class Button {
   }
 
   setUrl(str) {
-    this.url = parseStr(str)
+    this.data.url = parseStr(str)
     return this
   }
 
-  done() {
-    return JSON.parse(JSON.stringify(this))
+  setURL(str) { return this.setUrl(str) } // :)
+
+  toJSON() {
+    return { ...this.data }
   }
 }
 
 class SelectMenu {
   constructor(options) {
+    this.data = {}
     let ob = {}
     if (options && typeof (options) === 'object') {
       const obj_ = {}
@@ -251,17 +256,17 @@ class SelectMenu {
     for (const i in ob) {
       this[i] = ob[i]
     }
-    this.type = 3
+    this.data.type = 3
   }
 
   setCustomId(id) {
     const customId = parseStr(id, true)
-    this.custom_id = customId
+    this.data.custom_id = customId
     return this
   }
 
   addOption(obj) {
-    if (!this.options) this.options = []
+    if (!this.data.options) this.data.options = []
     const converted = {}
     for (const index in obj) {
       let item = obj[index]
@@ -269,7 +274,7 @@ class SelectMenu {
       converted[item] = index
     }
     const newObj = parseFromAllowed(obj, accepted.selectMenu)
-    this.options.push(newObj)
+    this.data.options.push(newObj)
     return this
   }
 
@@ -282,36 +287,37 @@ class SelectMenu {
 
   setPlaceholder(str) {
     const placeHolder = parseStr(str, true)
-    this.placeholder = placeHolder
+    this.data.placeholder = placeHolder
     return this
   }
 
   setMaxValues(int) {
     if (int > 25) return Error('You can only have 25 max selectable values!')
-    this.max_values = int
+    this.data.max_values = int
   }
 
   setMinValues(int) {
     if (int > 25) return Error('You can only have 25 max selectable values!')
-    this.max_values = int
+    this.data.max_values = int
   }
 
   setDisabled(bool) {
     if (typeof (bool) === 'boolean') {
-      this.disabled = bool
+      this.data.disabled = bool
     } else {
       return Error('Argument must be a boolean!')
     }
     return this
   }
 
-  done() {
-    return JSON.parse(JSON.stringify(this))
+  toJSON() {
+    return { ...this.data }
   }
 }
 
 class ActionRow {
   constructor(options) {
+    this.data = {}
     let ob = {}
     if (options && typeof (options) === 'object') {
       const obj_ = {}
@@ -324,15 +330,19 @@ class ActionRow {
       Error(`Options argument must be NULL or Object! Type given: ${typeof (options)}`)
     }
     for (const i in ob) {
-      this[i] = ob[i]
+      if (i === 'components') {
+        this[i] = obj[i];
+        continue
+      }
+      this.data[i] = ob[i]
     }
-    this.type = 1
+    this.data.type = 1
   }
 
   addComponent(obj) {
     if (!this.components) this.components = []
     const allowedItems = [].concat(accepted.button, accepted.selectMenu)
-    this.components.push(parseFromAllowed(obj, allowedItems))
+    this.components.push(parseFromAllowed(obj.data, allowedItems))
     return this
   }
 
@@ -348,8 +358,11 @@ class ActionRow {
     return this
   }
 
-  done() {
-    return JSON.parse(JSON.stringify(this))
+  toJSON() {
+    return {
+      ...this.data,
+      components: JSON.parse(JSON.stringify(this.components)),
+    }
   }
 }
 
