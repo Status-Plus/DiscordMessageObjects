@@ -20,5 +20,5 @@ const embed = new MessageEmbed()
           iconURL: client.user.avatarURL,
         })
         .setTimestamp()
-i.createMessage({content: 'UwU', embeds: [embed.done()]})
+i.createMessage({content: 'UwU', embeds: [embed]})
 ```
