@@ -145,6 +145,8 @@ class Embed {
       timestamp = new Date().toISOString()
     } else if (timestamp instanceof (Date)) {
       timestamp = timestamp.toISOString()
+    } else if (typeof (timestamp) === 'number') {
+      timestamp = new Date(timestamp).toISOString()
     }
     this.data.timestamp = timestamp
     return this
